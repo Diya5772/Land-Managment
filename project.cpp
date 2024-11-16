@@ -57,7 +57,7 @@ class property: navigation
     void sell_prop(void);
     void rent_my_prop(void);
     void show_my_prop(vector<int>);
-    void add_prop(void);
+    void add_prop(vector<int>&);
     //functions for find a property
     void buy_prop(void);
     void rent_a_prop(void);
@@ -185,10 +185,71 @@ void property::edit_prop(vector<int> user_prop_id)
     return;
 }
 
-void property::add_prop(void)
-{
-    //code
+void property::add_prop(vector<int>& user_prop_id) {
+    int id, pincode_value;
+    string name, owner_name, type_value;
+    double price_value, area_value;
+    char sale_status, rent_status;
+
+    // Generate new property ID (this example uses the next available ID)
+    if (!user_prop_id.empty()) {
+        id = *max_element(user_prop_id.begin(), user_prop_id.end()) + 1;
+    } else {
+        id = 1;  // Start from ID 1 if there are no properties
+    }
+
+    // Collect property details from the user
+    cout << "Enter the property details: " << endl;
+    cout << "Name: ";
+    cin.ignore(); // Clear the input buffer
+    getline(cin, name);
+
+    cout << "Owner: ";
+    getline(cin, owner_name);
+
+    cout << "Pincode: ";
+    cin >> pincode_value;
+
+    cout << "Price: ";
+    cin >> price_value;
+
+    cout << "Area: ";
+    cin >> area_value;
+
+    cout << "Is the property for sale? (y/n): ";
+    cin >> sale_status;
+    for_sale = (sale_status == 'y' || sale_status == 'Y');
+
+    cout << "Is the property for rent? (y/n): ";
+    cin >> rent_status;
+    for_rent = (rent_status == 'y' || rent_status == 'Y');
+
+    cout << "Type (Residential/Commercial/Luxury/etc.): ";
+    cin.ignore(); // Clear the input buffer again
+    getline(cin, type_value);
+
+    // Add property ID to the user_prop_id vector
+    user_prop_id.push_back(id);
+
+    // Open the CSV file to append the new property
+    ofstream file("property.csv", ios::app);
+    if (file.is_open()) {
+        // Write the new property to the file in CSV format
+        file << id << "," << name << "," << owner_name << "," << pincode_value << ","
+             << price_value << "," << area_value << ","
+             << (for_sale ? "true" : "false") << ","
+             << (for_rent ? "true" : "false") << ","
+             << type_value << "\n";
+
+        file.close();
+        cout << "Property added successfully!" << endl;
+        show_my_prop(user_prop_id);
+        manage_property_menu();
+    } else {
+        cerr << "Error opening file for writing." << endl;
+    }
 }
+
 void property::show_my_prop(vector<int> user_prop_id)
 {
     //code
