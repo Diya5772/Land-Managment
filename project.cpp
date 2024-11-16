@@ -56,7 +56,7 @@ class property: navigation
     void edit_prop(vector<int>);
     void sell_prop(void);
     void rent_my_prop(void);
-    void show_my_prop(vector<int>);
+    void show_my_prop(vector<int>, int);
     void add_prop(vector<int>&);
     //functions for find a property
     void buy_prop(void);
@@ -72,7 +72,7 @@ void property::edit_prop(vector<int> user_prop_id)
 
     cout << "These are your current properties:" << endl;
     cout << "------------------------------------------" << endl;
-    show_my_prop(user_prop_id);
+    show_my_prop(user_prop_id, 0);
 
     cout << "Enter the property ID you want to edit: ";
     cin >> id;
@@ -180,7 +180,7 @@ void property::edit_prop(vector<int> user_prop_id)
     rename("temp.csv", "property.csv");
 
     cout << "Property updated successfully!" << endl;
-    show_my_prop(user_prop_id);
+    show_my_prop(user_prop_id, 0);
     manage_property_menu();
     return;
 }
@@ -243,16 +243,87 @@ void property::add_prop(vector<int>& user_prop_id) {
 
         file.close();
         cout << "Property added successfully!" << endl;
-        show_my_prop(user_prop_id);
+        show_my_prop(user_prop_id, 0);
         manage_property_menu();
     } else {
         cerr << "Error opening file for writing." << endl;
     }
 }
 
-void property::show_my_prop(vector<int> user_prop_id)
-{
-    //code
+void property::show_my_prop(vector<int> user_prop_id, int x=1) {
+    ifstream file("property.csv");
+    string line;
+    bool found = false;
+
+    // Check if file is open
+    if (!file.is_open()) {
+        cerr << "Error opening file!" << endl;
+        return;
+    }
+
+    cout << "Here are your properties: " << endl;
+    cout << "---------------------------------" << endl;
+
+    // Read the file line by line
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string temp;
+        int id, pincode_value;
+        string name, owner_name, type_value;
+        double price_value, area_value;
+        string for_sale_str, for_rent_str;
+
+        // Parse the CSV line
+        getline(ss, temp, ',');
+        id = stoi(temp); // Property ID
+
+        // Check if the current property ID is in the user_prop_id vector
+        if (find(user_prop_id.begin(), user_prop_id.end(), id) != user_prop_id.end()) {
+            found = true;
+
+            // Property details
+            getline(ss, name, ',');       // Name
+            getline(ss, owner_name, ','); // Owner
+            getline(ss, temp, ',');       // Pincode
+            pincode_value = stoi(temp);
+
+            getline(ss, temp, ',');       // Price
+            price_value = stod(temp);
+
+            getline(ss, temp, ',');       // Area
+            area_value = stod(temp);
+
+            getline(ss, for_sale_str, ','); // For sale
+            for_sale = (for_sale_str == "true");
+
+            getline(ss, for_rent_str, ','); // For rent
+            for_rent = (for_rent_str == "true");
+
+            getline(ss, type_value, ','); // Type
+
+            // Display property details
+            cout << "Property ID: " << id << endl;
+            cout << "Name: " << name << endl;
+            cout << "Owner: " << owner_name << endl;
+            cout << "Pincode: " << pincode_value << endl;
+            cout << "Price: " << price_value << endl;
+            cout << "Area: " << area_value << " sq.ft." << endl;
+            cout << "For Sale: " << (for_sale ? "Yes" : "No") << endl;
+            cout << "For Rent: " << (for_rent ? "Yes" : "No") << endl;
+            cout << "Type: " << type_value << endl;
+            cout << "---------------------------------" << endl;
+        }
+    }
+
+    if (!found) {
+        cout << "No properties found for the given IDs." << endl;
+    }
+    file.close();
+    if(x==1)
+    {
+        manage_property_menu();
+    }
+    return;
 }
 void property::sell_prop(void)
 {
