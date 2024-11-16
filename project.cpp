@@ -369,5 +369,6 @@ void user::user_login(void)
 int main()
 {
     //code
+    cout<<"hello";
 
 }
