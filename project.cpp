@@ -54,7 +54,7 @@ class property: navigation
     public:
     //functions for manage property
     void edit_prop(vector<int>);
-    void sell_prop(void);
+    void sell_prop(vector<int>);
     void rent_my_prop(void);
     void show_my_prop(vector<int>, int);
     void add_prop(vector<int>&);
@@ -325,7 +325,7 @@ void property::show_my_prop(vector<int> user_prop_id, int x=1) {
     }
     return;
 }
-void property::sell_prop(void)
+void property::sell_prop(vector<int> user_prop_id)
 {
     //code
 }
