@@ -505,25 +505,22 @@ void property::edit_prop(int id)
                     break;
                 default:
                     cout << "Entered invalid input." << endl;
-                    nav.manage_property_menu(id);
+                    edit_prop(id);
                     return;
             }
 
             cout << "Enter the new value: ";
-            if (to_change == "price" || to_change == "area") {
-                cin >> new_double_value;
-            } else {
-                cin.ignore(); // Clear buffer
-                getline(cin, new_value);
-            }
+            cin.ignore(); // Clear buffer
+            getline(cin, new_value);
+            
 
             // Update the selected field
             if (to_change == "name") {
                 name = new_value;
             } else if (to_change == "price") {
-                price = to_string(new_double_value);
+                price = new_value;
             } else if (to_change == "area") {
-                area = to_string(new_double_value);
+                area = new_value;
             } else if (to_change == "type") {
                 type = new_value;
             }
@@ -569,9 +566,8 @@ void property::add_prop(int id) {
     int property_id, pincode_value;
     string name, owner_name, type_value;
     double price_value, area_value;
-    bool for_sale, for_rent;
 
-    // Open the CSV file to determine the next available property ID
+    // Determine the next available property ID
     ifstream inputFile("property.csv");
     property_id = 1; // Start property ID from 1 if no properties exist
 
@@ -591,7 +587,7 @@ void property::add_prop(int id) {
     }
 
     // Collect property details from the user
-    cout << "Enter the property details: " << endl;
+    cout << "Enter the property details:\n";
     cout << "Name: ";
     cin.ignore(); // Clear the input buffer
     getline(cin, name);
@@ -613,25 +609,57 @@ void property::add_prop(int id) {
     getline(cin, type_value);
 
     // Append the new property to the CSV file
-    ofstream file("property.csv", ios::app);
+    ofstream file("property.csv", ios::out | ios::app);
     if (file.is_open()) {
         // Write the new property to the file in CSV format
-        file << property_id << "," << name << "," << owner_name << "," << pincode_value << ","
+        file <<"\n"<< property_id << "," << name << "," << owner_name << "," << pincode_value << ","
              << price_value << "," << area_value << ","
-             << 0 << ","
-             << 0 << ","
-             << type_value << "," << id << "\n";
-
+             << 0 << "," // for_sale
+             << 0 << "," // for_rent
+             << type_value << "," << id ; // Add user ID to the end
         file.close();
-        cout << "Property added successfully!" << endl;
-
-        // Show the updated list of properties for the user
-        show_my_prop(id, 0);
-        nav.manage_property_menu(id);
+        cout << "Property added successfully!\n";
     } else {
-        cerr << "Error opening file for writing." << endl;
-        nav.manage_property_menu(id);
+        cerr << "Error opening property.csv for writing.\n";
     }
+
+    // Check and update pincode.csv
+    ifstream pincodeFile("pincode.csv");
+    bool pincodeExists = false;
+    if (pincodeFile.is_open()) {
+        string line;
+        while (getline(pincodeFile, line)) {
+            stringstream ss(line);
+            string existing_pincode;
+            getline(ss, existing_pincode, ',');
+            if (stoi(existing_pincode) == pincode_value) {
+                pincodeExists = true;
+                break;
+            }
+        }
+        pincodeFile.close();
+    }
+
+    if (!pincodeExists) {
+        ofstream pincodeFileOut("pincode.csv", ios::app);
+        if (pincodeFileOut.is_open()) {
+            pincodeFileOut << pincode_value;
+            for (int i = 0; i < 11; ++i) { // Append 11 zeros
+                pincodeFileOut << ",0";
+            }
+            pincodeFileOut << "\n";
+            pincodeFileOut.close();
+            cout << "Pincode added successfully!\n";
+        } else {
+            cerr << "Error opening pincode.csv for writing.\n";
+        }
+    } else {
+        cout << "Pincode already exists in pincode.csv.\n";
+    }
+
+    // Optionally show updated list of properties
+    show_my_prop(id, 0);
+    nav.manage_property_menu(id);
 }
 
 void property::show_my_prop(int id, int x = 1) {
@@ -711,7 +739,6 @@ void property::show_my_prop(int id, int x = 1) {
     if (x == 1) {
         nav.manage_property_menu(id);
     }
-    return;
 }
 
 void property::sell_prop(int id) {
@@ -1093,477 +1120,408 @@ void property::see_and_edit_application(int id) {
 }
 
 void property::show_prop(int id) {
+    int selected_pincode;
+
+    // Step 1: Display available pincodes
     ifstream pincode_file("pincode.csv");
     if (!pincode_file.is_open()) {
-        cerr << "Error opening pincode.csv file!" << endl;
-        nav.manage_property_menu(id);
+        cerr << "Error: Unable to open pincode.csv!" << endl;
         return;
     }
 
+    vector<int> pincodes;
     string line;
-    vector<int> pincodes; // To store pincodes
 
-    // Read and display all the pincodes from the pincode.csv file
-    cout << "Available Pincodes: " << endl;
-    cout << "--------------------" << endl;
-    
-    // Skip the header row
-    getline(pincode_file, line);
-
-    // Read each line to extract pincodes
     while (getline(pincode_file, line)) {
         stringstream ss(line);
         string temp;
-        int pincode;
-
-        // Extract the pincode (first column)
-        getline(ss, temp, ',');
-        pincode = stoi(temp);
-
-        // Store pincode in the vector
-        pincodes.push_back(pincode);
+        getline(ss, temp, ','); // Extract pincode
+        pincodes.push_back(stoi(temp));
     }
     pincode_file.close();
 
-    // Display pincodes to the user
-    for (size_t i = 0; i < pincodes.size(); ++i) {
-        cout << i + 1 << ". Pincode: " << pincodes[i] << endl;
+    if (pincodes.empty()) {
+        cout << "No pincodes available!" << endl;
+        return;
     }
 
-    cout << "Enter the pincode you're interested in: ";
-    int selected_pincode;
+    cout << "Available Pincodes:\n";
+    for (size_t i = 0; i < pincodes.size(); ++i) {
+        cout << i + 1 << ". " << pincodes[i] << endl;
+    }
+
+    cout << "Enter the pincode to view properties: ";
     cin >> selected_pincode;
 
-    // Check if the selected pincode is valid
     if (find(pincodes.begin(), pincodes.end(), selected_pincode) == pincodes.end()) {
-        cout << "Invalid pincode!" << endl;
-        nav.manage_property_menu(id);
+        cout << "Invalid pincode selected!" << endl;
         return;
     }
 
-    // Now, display properties with the selected pincode from property.csv
+    // Step 2: Display properties in the selected pincode
     ifstream property_file("property.csv");
     if (!property_file.is_open()) {
-        cerr << "Error opening property.csv file!" << endl;
-        nav.manage_property_menu(id);
+        cerr << "Error: Unable to open property.csv!" << endl;
         return;
     }
 
-    bool found_property = false;
-    cout << "\nProperties available at Pincode " << selected_pincode << ":" << endl;
-    cout << "----------------------------------------------------------" << endl;
+    string property_line;
+    bool properties_found = false;
 
-    // Read and display properties from the property.csv file
-    while (getline(property_file, line)) {
-        stringstream ss(line);
+    cout << "\nProperties in Pincode " << selected_pincode << ":\n";
+    cout << "----------------------------------------------------------\n";
+
+    while (getline(property_file, property_line)) {
+        stringstream ss(property_line);
         string temp;
-        int prop_id, pincode_value, for_sale, for_rent, user_id;
-        string name, owner_name, type_value;
+        int pincode;
+        string name, owner, type_value;
         double price_value, area_value;
+        int for_sale, for_rent, user_id;
 
-        // Parse the CSV line
-        getline(ss, temp, ',');
-        prop_id = stoi(temp); // Property ID
+        getline(ss, temp, ','); // Skip Property ID
+        getline(ss, name, ','); // Name
+        getline(ss, owner, ','); // Owner
+        getline(ss, temp, ','); // Pincode
+        pincode = stoi(temp);
 
-        getline(ss, name, ',');       // Name
-        getline(ss, owner_name, ','); // Owner
-        getline(ss, temp, ',');       // Pincode
-        pincode_value = stoi(temp);
+        if (pincode == selected_pincode) {
+            properties_found = true;
 
-        getline(ss, temp, ',');       // Price
-        price_value = stod(temp);
+            getline(ss, temp, ',');       // Price
+            price_value = stod(temp);
 
-        getline(ss, temp, ',');       // Area
-        area_value = stod(temp);
+            getline(ss, temp, ',');       // Area
+            area_value = stod(temp);
 
-        getline(ss, temp, ',');       // For sale
-        for_sale = stoi(temp);
+            getline(ss, temp, ',');       // For Sale
+            for_sale = stoi(temp);
 
-        getline(ss, temp, ',');       // For rent
-        for_rent = stoi(temp);
+            getline(ss, temp, ',');       // For Rent
+            for_rent = stoi(temp);
 
-        getline(ss, type_value, ','); // Type
+            getline(ss, type_value, ','); // Type
+            getline(ss, temp, ',');       // User ID
+            user_id = stoi(temp);
 
-        getline(ss, temp, ',');       // User ID
-        user_id = stoi(temp);
-
-        // Display the property if the pincode matches
-        if (pincode_value == selected_pincode) {
-            found_property = true;
-
-            cout << "Property ID: " << prop_id << endl;
-            cout << "Name: " << name << endl;
-            cout << "Owner: " << owner_name << endl;
-            cout << "Price: " << price_value << endl;
-            cout << "Area: " << area_value << " sq.ft." << endl;
-            cout << "For Sale: " << (for_sale > 0 ? "Yes, Price: " + to_string(for_sale) : "No") << endl;
-            cout << "For Rent: " << (for_rent > 0 ? "Yes, Price: " + to_string(for_rent) : "No") << endl;
-            cout << "Type: " << type_value << endl;
-            cout << "---------------------------------" << endl;
+            cout << "Property Name: " << name << "\n";
+            cout << "Owner: " << owner << "\n";
+            cout << "Price: " << price_value << "\n";
+            cout << "Area: " << area_value << " sq.ft.\n";
+            cout << "Type: " << type_value << "\n";
+            cout << "For Sale: " << (for_sale > 0 ? "Yes, Price: " + to_string(for_sale) : "No") << "\n";
+            cout << "For Rent: " << (for_rent > 0 ? "Yes, Rent: " + to_string(for_rent) : "No") << "\n";
+            cout << "----------------------------------------------------------\n";
         }
     }
-
     property_file.close();
 
-    if (!found_property) {
-        cout << "No properties found for the selected pincode." << endl;
+    if (!properties_found) {
+        cout << "No properties available in the selected pincode.\n";
     }
-    nav.manage_property_menu(id);
+    nav.find_property_menu(id);
 }
 
 void property::buy_prop(int id) {
     int selected_pincode;
-    cout << "Enter the pincode where you want to search for properties: ";
+
+    // Step 1: Display available pincodes
     ifstream pincode_file("pincode.csv");
     if (!pincode_file.is_open()) {
-        cerr << "Error opening pincode.csv file!" << endl;
-        nav.manage_property_menu(id);
+        cerr << "Error: Unable to open pincode.csv!" << endl;
         return;
     }
 
-    string pincode_line; // Renamed variable for clarity
-    vector<int> pincodes; // To store pincodes
-
-    // Read and display all the pincodes from the pincode.csv file
-    cout << "Available Pincodes: " << endl;
-    cout << "--------------------" << endl;
-
-    // Skip the header row
-    getline(pincode_file, pincode_line);
-
-    // Read each line to extract pincodes
-    while (getline(pincode_file, pincode_line)) {
-        stringstream ss(pincode_line);
+    vector<int> pincodes;
+    string line;
+    while (getline(pincode_file, line)) {
+        stringstream ss(line);
         string temp;
-        int pincode;
-
-        // Extract the pincode (first column)
-        getline(ss, temp, ',');
-        pincode = stoi(temp);
-
-        // Store pincode in the vector
-        pincodes.push_back(pincode);
+        getline(ss, temp, ','); // Extract pincode
+        pincodes.push_back(stoi(temp));
     }
     pincode_file.close();
 
-    // Display pincodes to the user
-    for (size_t i = 0; i < pincodes.size(); ++i) {
-        cout << i + 1 << ". Pincode: " << pincodes[i] << endl;
-    }
-    cin >> selected_pincode;
-
-    ifstream property_file("property.csv");
-    if (!property_file.is_open()) {
-        cerr << "Error opening property.csv file!" << endl;
+    if (pincodes.empty()) {
+        cout << "No pincodes available!" << endl;
         return;
     }
 
-    vector<string> file_lines; // Store all lines to rewrite the file later
-    string property_line;      // Renamed this line variable for clarity
-    vector<int> available_properties; // Store property IDs for sale in the selected pincode
+    cout << "Available Pincodes:\n";
+    for (size_t i = 0; i < pincodes.size(); ++i) {
+        cout << i + 1 << ". " << pincodes[i] << endl;
+    }
 
-    // Header to preserve CSV structure
-    bool header_parsed = false;
-    string header_line;
+    cout << "Enter the pincode where you want to search for properties: ";
+    cin >> selected_pincode;
 
-    cout << "\nProperties available for sale in Pincode " << selected_pincode << ":" << endl;
-    cout << "----------------------------------------------------------" << endl;
+    if (find(pincodes.begin(), pincodes.end(), selected_pincode) == pincodes.end()) {
+        cout << "Invalid pincode selected!" << endl;
+        return;
+    }
+
+    // Step 2: Display properties for sale in the selected pincode
+    ifstream property_file("property.csv");
+    if (!property_file.is_open()) {
+        cerr << "Error: Unable to open property.csv!" << endl;
+        return;
+    }
+
+    vector<string> file_lines;
+    vector<int> sale_properties;
+    string property_line;
+    bool properties_found = false;
 
     while (getline(property_file, property_line)) {
-        if (!header_parsed) {
-            header_line = property_line;
-            file_lines.push_back(property_line); // Store the header
-            header_parsed = true;
-            continue;
-        }
+        file_lines.push_back(property_line); // Store lines for potential updates
 
         stringstream ss(property_line);
         string temp;
-        int prop_id, pincode_value, for_sale, for_rent, user_id;
-        string name, owner_name, type_value;
-        double price_value, area_value;
+        int prop_id, pincode, for_sale;
+        string name, owner;
 
-        // Parse the CSV line
-        getline(ss, temp, ',');
-        prop_id = stoi(temp); // Property ID
+        getline(ss, temp, ','); // Property ID
+        prop_id = stoi(temp);
 
-        getline(ss, name, ',');       // Name
-        getline(ss, owner_name, ','); // Owner
-        getline(ss, temp, ',');       // Pincode
-        pincode_value = stoi(temp);
-
-        getline(ss, temp, ',');       // Price
-        price_value = stod(temp);
-
-        getline(ss, temp, ',');       // Area
-        area_value = stod(temp);
-
-        getline(ss, temp, ',');       // For sale
+        getline(ss, name, ',');          // Name
+        getline(ss, owner, ',');         // Owner
+        getline(ss, temp, ',');          // Pincode
+        pincode = stoi(temp);
+        getline(ss, temp, ',');          // Skip Price
+        getline(ss, temp, ',');          // Skip Area
+        getline(ss, temp, ',');          // For Sale
         for_sale = stoi(temp);
 
-        getline(ss, temp, ',');       // For rent
-        for_rent = stoi(temp);
-
-        getline(ss, type_value, ','); // Type
-
-        getline(ss, temp, ',');       // User ID
-        user_id = stoi(temp);
-
-        file_lines.push_back(property_line); // Store the line for later modification
-
-        // Check if the property matches the pincode and is for sale
-        if (pincode_value == selected_pincode && for_sale > 0) {
-            available_properties.push_back(prop_id);
-            cout << "Property ID: " << prop_id << endl;
-            cout << "Name: " << name << endl;
-            cout << "Owner: " << owner_name << endl;
-            cout << "Price: " << for_sale << endl;
-            cout << "Area: " << area_value << " sq.ft." << endl;
-            cout << "Type: " << type_value << endl;
-            cout << "---------------------------------" << endl;
+        if (pincode == selected_pincode && for_sale > 0) {
+            sale_properties.push_back(prop_id);
+            properties_found = true;
+            cout << "Property ID: " << prop_id << "\n"
+                 << "Name: " << name << "\n"
+                 << "Owner: " << owner << "\n"
+                 << "Price: " << for_sale << "\n"
+                 << "-----------------------------------\n";
         }
     }
-
     property_file.close();
 
-    // If no properties found
-    if (available_properties.empty()) {
-        cout << "No properties available for sale in the selected pincode." << endl;
-        nav.manage_property_menu(id);
+    if (!properties_found) {
+        cout << "No properties available for sale in the selected pincode.\n";
         return;
     }
 
-    // Ask user to select a property to buy
+    // Step 3: Ask the user to select a property to buy
     int selected_property;
     cout << "Enter the Property ID you want to buy: ";
     cin >> selected_property;
 
-    // Check if the selected property is valid
-    if (find(available_properties.begin(), available_properties.end(), selected_property) == available_properties.end()) {
+    if (find(sale_properties.begin(), sale_properties.end(), selected_property) == sale_properties.end()) {
         cout << "Invalid Property ID!" << endl;
-        nav.manage_property_menu(id);
         return;
     }
 
-    // Update the CSV file with the new owner (user_id updated to `id`)
+    // Step 4: Update the selected property in the CSV file
     ofstream temp_file("temp_property.csv");
     if (!temp_file.is_open()) {
-        cerr << "Error opening temp_property.csv file!" << endl;
+        cerr << "Error: Unable to create temp_property.csv!" << endl;
         return;
     }
 
-    for (const string& file_line : file_lines) {
-        stringstream ss(file_line);
+    for (const auto& line : file_lines) {
+        stringstream ss(line);
         string temp;
         int prop_id;
 
-        // Parse property ID
-        getline(ss, temp, ',');
+        getline(ss, temp, ','); // Property ID
         prop_id = stoi(temp);
 
         if (prop_id == selected_property) {
-            // Update the user_id and set for_sale to 0
-            string updated_line = file_line;
-            size_t last_comma = updated_line.find_last_of(',');
-            size_t second_last_comma = updated_line.find_last_of(',', last_comma - 1);
+            string updated_line;
+            stringstream update_ss(line);
+            vector<string> columns;
 
-            // Modify user_id and for_sale fields
-            updated_line.replace(second_last_comma + 1, last_comma - second_last_comma - 1, "0"); // for_sale
-            updated_line.replace(last_comma + 1, string::npos, to_string(id)); // user_id
+            // Parse columns into a vector
+            while (getline(update_ss, temp, ',')) {
+                columns.push_back(temp);
+            }
+
+            // Update sale column to 0 and set user ID to current user
+            columns[6] = "0";          // For Sale column
+            columns.back() = to_string(id); // User ID column
+
+            // Reconstruct updated line
+            for (size_t i = 0; i < columns.size(); ++i) {
+                updated_line += columns[i];
+                if (i != columns.size() - 1)
+                    updated_line += ",";
+            }
 
             temp_file << updated_line << "\n";
         } else {
-            // Write the original line
-            temp_file << file_line << "\n";
+            temp_file << line << "\n";
         }
     }
 
     temp_file.close();
 
-    // Replace the original property file with the updated file
+    // Replace original file with updated file
     if (remove("property.csv") != 0 || rename("temp_property.csv", "property.csv") != 0) {
-        cerr << "Error updating the property file!" << endl;
+        cerr << "Error updating the property.csv file!" << endl;
     } else {
         cout << "Property purchased successfully!" << endl;
     }
-    nav.manage_property_menu(id);
+    nav.find_property_menu(id);
 }
 
 void property::rent_a_prop(int id) {
     int selected_pincode;
-    cout << "Enter the pincode where you want to search for rental properties: ";
 
+    // Step 1: Display available pincodes
     ifstream pincode_file("pincode.csv");
     if (!pincode_file.is_open()) {
-        cerr << "Error opening pincode.csv file!" << endl;
-        nav.manage_property_menu(id);
+        cerr << "Error: Unable to open pincode.csv!" << endl;
         return;
     }
 
+    vector<int> pincodes;
     string line;
-    vector<int> pincodes; // To store pincodes
-
-    // Read and display all the pincodes from the pincode.csv file
-    cout << "Available Pincodes: " << endl;
-    cout << "--------------------" << endl;
-    
-    // Skip the header row
-    getline(pincode_file, line);
-
-    // Read each line to extract pincodes
     while (getline(pincode_file, line)) {
         stringstream ss(line);
         string temp;
-        int pincode;
-
-        // Extract the pincode (first column)
-        getline(ss, temp, ',');
-        pincode = stoi(temp);
-
-        // Store pincode in the vector
-        pincodes.push_back(pincode);
+        getline(ss, temp, ','); // Extract pincode
+        pincodes.push_back(stoi(temp));
     }
     pincode_file.close();
 
-    // Display pincodes to the user
-    for (size_t i = 0; i < pincodes.size(); ++i) {
-        cout << i + 1 << ". Pincode: " << pincodes[i] << endl;
+    if (pincodes.empty()) {
+        cout << "No pincodes available!" << endl;
+        return;
     }
+
+    cout << "Available Pincodes:\n";
+    for (size_t i = 0; i < pincodes.size(); ++i) {
+        cout << i + 1 << ". " << pincodes[i] << endl;
+    }
+
+    cout << "Enter the pincode where you want to search for properties: ";
     cin >> selected_pincode;
 
+    if (find(pincodes.begin(), pincodes.end(), selected_pincode) == pincodes.end()) {
+        cout << "Invalid pincode selected!" << endl;
+        return;
+    }
+
+    // Step 2: Display properties for rent in the selected pincode
     ifstream property_file("property.csv");
     if (!property_file.is_open()) {
-        cerr << "Error opening property.csv file!" << endl;
+        cerr << "Error: Unable to open property.csv!" << endl;
         return;
     }
 
-    vector<string> file_lines; // Store all lines to rewrite the file later
-    vector<int> available_properties; // Store property IDs for rent in the selected pincode
+    vector<string> file_lines;
+    vector<int> rent_properties;
+    string property_line;
+    bool properties_found = false;
 
-    // Header to preserve CSV structure
-    bool header_parsed = false;
-    string header_line;
+    while (getline(property_file, property_line)) {
+        file_lines.push_back(property_line); // Store lines for potential updates
 
-    cout << "\nProperties available for rent in Pincode " << selected_pincode << ":" << endl;
-    cout << "----------------------------------------------------------" << endl;
-
-    while (getline(property_file, line)) {
-        if (!header_parsed) {
-            header_line = line;
-            file_lines.push_back(line); // Store the header
-            header_parsed = true;
-            continue;
-        }
-
-        stringstream ss(line);
+        stringstream ss(property_line);
         string temp;
-        int prop_id, pincode_value, for_sale, for_rent, user_id;
-        string name, owner_name, type_value;
-        double price_value, area_value;
+        int prop_id, pincode, for_rent;
+        string name, owner;
 
-        // Parse the CSV line
-        getline(ss, temp, ',');
-        prop_id = stoi(temp); // Property ID
+        getline(ss, temp, ','); // Property ID
+        prop_id = stoi(temp);
 
-        getline(ss, name, ',');       // Name
-        getline(ss, owner_name, ','); // Owner
-        getline(ss, temp, ',');       // Pincode
-        pincode_value = stoi(temp);
-
-        getline(ss, temp, ',');       // Price
-        price_value = stod(temp);
-
-        getline(ss, temp, ',');       // Area
-        area_value = stod(temp);
-
-        getline(ss, temp, ',');       // For sale
-        for_sale = stoi(temp);
-
-        getline(ss, temp, ',');       // For rent
+        getline(ss, name, ',');          // Name
+        getline(ss, owner, ',');         // Owner
+        getline(ss, temp, ',');          // Pincode
+        pincode = stoi(temp);
+        getline(ss, temp, ',');          // Skip Price
+        getline(ss, temp, ',');          // Skip Area
+        getline(ss, temp, ',');          // Skip For Sale
+        getline(ss, temp, ',');          // For Rent
         for_rent = stoi(temp);
 
-        getline(ss, type_value, ','); // Type
-
-        getline(ss, temp, ',');       // User ID
-        user_id = stoi(temp);
-
-        file_lines.push_back(line); // Store the line for later modification
-
-        // Check if the property matches the pincode and is for rent
-        if (pincode_value == selected_pincode && for_rent > 0) {
-            available_properties.push_back(prop_id);
-            cout << "Property ID: " << prop_id << endl;
-            cout << "Name: " << name << endl;
-            cout << "Owner: " << owner_name << endl;
-            cout << "Rent Price: " << for_rent << endl;
-            cout << "Area: " << area_value << " sq.ft." << endl;
-            cout << "Type: " << type_value << endl;
-            cout << "---------------------------------" << endl;
+        if (pincode == selected_pincode && for_rent > 0) {
+            rent_properties.push_back(prop_id);
+            properties_found = true;
+            cout << "Property ID: " << prop_id << "\n"
+                 << "Name: " << name << "\n"
+                 << "Owner: " << owner << "\n"
+                 << "Rent Price: " << for_rent << "\n"
+                 << "-----------------------------------\n";
         }
     }
-
     property_file.close();
 
-    // If no properties found
-    if (available_properties.empty()) {
-        cout << "No properties available for rent in the selected pincode." << endl;
-        nav.manage_property_menu(id);
+    if (!properties_found) {
+        cout << "No properties available for rent in the selected pincode.\n";
         return;
     }
 
-    // Ask user to select a property to rent
+    // Step 3: Ask the user to select a property to rent
     int selected_property;
     cout << "Enter the Property ID you want to rent: ";
     cin >> selected_property;
 
-    // Check if the selected property is valid
-    if (find(available_properties.begin(), available_properties.end(), selected_property) == available_properties.end()) {
+    if (find(rent_properties.begin(), rent_properties.end(), selected_property) == rent_properties.end()) {
         cout << "Invalid Property ID!" << endl;
-        nav.manage_property_menu(id);
         return;
     }
 
-    // Update the CSV file to set for_rent to 0 (indicating it is now rented)
+    // Step 4: Update the selected property in the CSV file
     ofstream temp_file("temp_property.csv");
     if (!temp_file.is_open()) {
-        cerr << "Error opening temp_property.csv file!" << endl;
+        cerr << "Error: Unable to create temp_property.csv!" << endl;
         return;
     }
 
-    for (const string& file_line : file_lines) {
-        stringstream ss(file_line);
+    for (const auto& line : file_lines) {
+        stringstream ss(line);
         string temp;
         int prop_id;
 
-        // Parse property ID
-        getline(ss, temp, ',');
+        getline(ss, temp, ','); // Property ID
         prop_id = stoi(temp);
 
         if (prop_id == selected_property) {
-            // Update for_rent to 0
-            string updated_line = file_line;
-            size_t rent_index = updated_line.find_last_of(',', updated_line.find_last_of(',') - 1);
-            size_t sale_index = updated_line.find_last_of(',', rent_index - 1);
+            string updated_line;
+            stringstream update_ss(line);
+            vector<string> columns;
 
-            // Modify for_rent field
-            updated_line.replace(rent_index + 1, sale_index - rent_index - 1, "0"); 
+            // Parse columns into a vector
+            while (getline(update_ss, temp, ',')) {
+                columns.push_back(temp);
+            }
+
+            // Update rent column to 0 and set user ID to current user
+            columns[7] = "0";          // For Rent column
+            columns.back() = to_string(id); // User ID column
+
+            // Reconstruct updated line
+            for (size_t i = 0; i < columns.size(); ++i) {
+                updated_line += columns[i];
+                if (i != columns.size() - 1)
+                    updated_line += ",";
+            }
 
             temp_file << updated_line << "\n";
         } else {
             // Write the original line
-            temp_file << file_line << "\n";
+            temp_file << line << "\n";
         }
     }
 
     temp_file.close();
 
-    // Replace the original property file with the updated file
+    // Replace original file with updated file
     if (remove("property.csv") != 0 || rename("temp_property.csv", "property.csv") != 0) {
-        cerr << "Error updating the property file!" << endl;
+        cerr << "Error updating the property.csv file!" << endl;
     } else {
         cout << "Property rented successfully!" << endl;
     }
-    nav.manage_property_menu(id);
+    nav.find_property_menu(id);
 }
 
 
