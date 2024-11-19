@@ -612,11 +612,11 @@ void property::add_prop(int id) {
     ofstream file("property.csv", ios::out | ios::app);
     if (file.is_open()) {
         // Write the new property to the file in CSV format
-        file <<"\n"<< property_id << "," << name << "," << owner_name << "," << pincode_value << ","
+        file << property_id << "," << name << "," << owner_name << "," << pincode_value << ","
              << price_value << "," << area_value << ","
              << 0 << "," // for_sale
              << 0 << "," // for_rent
-             << type_value << "," << id ; // Add user ID to the end
+             << type_value << "," << id <<"\n"; // Add user ID to the end
         file.close();
         cout << "Property added successfully!\n";
     } else {
