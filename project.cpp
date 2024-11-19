@@ -331,8 +331,36 @@ void property::rent_my_prop(void)
 }
 void property::show_prop(void)
 {
-    //code
+    cout<< "Properties of the following pincodes are available: "<<endl;
+    vector<long int> available_pincodes {456368,685894,578493,589385,587959};
+    for (long int i: available_pincodes) 
+        cout<< i<<endl;
+    long int input_pincode;
+    cout<< "Enter the pincode you want to search from the above available pincodes: ";
+    cin>> input_pincode;
+    if (find(available_pincodes.begin(), available_pincodes.end(), input_pincode) == available_pincodes.end()) 
+        cout << "Sorry, the entered pincode " << input_pincode << " is not available." << endl;
+    else{
+        cout<<"The data of properties of this area is as follows: ";
+    ifstream file("pincode.csv");
+        if (!file.is_open()) {
+            cerr << "Error displaying property!" << endl;
+            return;
+        }
+
+        string line;
+        while (getline(file, line)) {
+            if (line.find(to_string(input_pincode)) != string::npos) {
+                cout << line << endl;             }
+        }
+
+        file.close(); 
+
+    }
 }
+
+
+
 void property::buy_prop(void)
 {
     //code
