@@ -16,16 +16,77 @@ void navigation::main_menu(void)
 }
 void navigation::real_estate_menu(void)
 {
-    //code
+     int selection;
+    cout << "Choose an option:\n1. Manage Property\n2. Find Property\n";
+    cin >> selection;
+
+    switch (selection)
+    {
+    case 1:
+        manage_property_menu();
+        break;
+    case 2:
+        find_property_menu();
+        break;
+    default:
+        cout << "Invalid choice. Please try again." << endl;
+        break;
+    }
 }
 void navigation::manage_property_menu(void)
 {
-    //code
+     int selection;
+    cout << "Choose an option:\n1. edit property \n2. sell property  \n3. rent my property  \n4. show my property  \n5. add property\n";
+    cin >> selection;
+
+    switch (selection)
+    {
+    case 1:
+        void edit_prop(vector<int>);
+        break;
+    case 2:
+        void sell_prop(vector<int>);
+        break;
+    case 3:
+        void rent_my_prop(void);
+        break;
+    case 4:
+        void show_my_prop(vector<int>, int);
+        break;
+    case 5:
+        void add_prop(vector<int> &);
+        break;
+    default:
+        cout << "Invalid choice. Please try again." << endl;
+        break;
+    }
+    cout << "Manage Property Menu" << endl;
 }
 void navigation::find_property_menu(void)
 {
-    //code
+   int selection;
+    cout << "Choose an option:\n1. buy property \n2. rent property  \n3. show property \n";
+    cin >> selection;
+
+    switch (selection)
+    {
+    case 1:
+ void buy_prop(void);
+         break;
+    case 2:
+        void rent_a_prop(void);
+        break;
+    case 3:
+         void show_prop(void);
+        break;
+   
+    default:
+        cout << "Invalid choice. Please try again." << endl;
+        break;
+    }
+    cout << "Find Property Menu" << endl;
 }
+
 
 
 class pincode_search
@@ -468,28 +529,94 @@ void property::rent_a_prop(void)
 }
 
 
-class user
-{
-    string user_id, name;
-    int age;
-    vector<int> user_prop; //this will be a vector of property ids that user has
-    public:
-    void user_register(void);
-    void user_login(void);
+class User {
+    static int nextID;  
+    static unordered_map<int, string> userDirectory; 
+    string name;
+    int age, user_id;
+    vector<int> user_prop; 
+
+public:
+    void user_register();
+    static string getUserNameByID(int id);
+
+    int getUserID() const {
+        return user_id;
+    }
+
+    string getName() const {
+        return name;
+    }
+
+    int getAge() const {
+        return age;
+    }
+
+    vector<int> getUserProp() const {
+        return user_prop;
+    }
 };
-void user::user_register(void)
-{
-    //code
+
+
+int User::nextID = 1;
+unordered_map<int, string> User::userDirectory;
+
+void User::user_register() {
+    cout << "Enter your name: ";
+    cin >> name;
+    cout << "Enter your age: ";
+    cin >> age;
+    user_id = nextID++;
+    userDirectory[user_id] = name;  
+    cout << "Registration successful. Your user ID is " << user_id << endl;
 }
-void user::user_login(void)
-{
-    //code
+
+string User::getUserNameByID(int id) {
+    if (userDirectory.find(id) != userDirectory.end()) {
+        return userDirectory[id];
+    } else {
+        return "User ID not found.";
+    }
 }
 
 
-int main()
+   int main()
 {
-    //code
-    cout<<"hello";
+    vector<User> users;
+    navigation nav;
+    char choice;
 
+    do
+    {
+        cout << "Choose an option:\n1. Register User\n2. Look up User by ID\n3. Exit\n";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case '1':
+        {
+            User newUser;
+            newUser.user_register();
+            users.push_back(newUser);
+            break;
+        }
+        case '2':
+        {
+            int lookupID;
+            cout << "Enter user ID to lookup: ";
+            cin >> lookupID;
+            cout << "User Name: " << User::getUserNameByID(lookupID) << endl;
+            nav.real_estate_menu();
+            break;
+        }
+        case '3':
+            cout << "Exiting program." << endl;
+            break;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+            break;
+        }
+    } while (choice != '3');
+
+    return 0;
 }
