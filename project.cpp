@@ -66,7 +66,7 @@ navigation nav;
 void navigation::main_menu(void)
 {
     int choice;
-    cout << "Choose an option:\n1. Register User\n2. Login\n3. Pincode search/n4. Tax Calculator\n";
+    cout << "Choose an option:\n1. Register User\n2. Login\n3. Pincode search\n4. Tax Calculator\n5. Exit"<<endl;
     cin >> choice;
 
     switch (choice)
@@ -105,7 +105,7 @@ void navigation::main_menu(void)
 void navigation::real_estate_menu(int id)
 {
     int selection;
-    cout << "Choose an option:\n1. Manage Property\n2. Find Property\n3. Go back";
+    cout << "Choose an option:\n1. Manage Property\n2. Find Property\n3. Go back"<<endl;
     cin >> selection;
 
     switch (selection)
@@ -128,7 +128,7 @@ void navigation::real_estate_menu(int id)
 void navigation::manage_property_menu(int id)
 {
      int selection;
-    cout << "Choose an option:\n1. edit property \n2. sell property  \n3. rent my property  \n4. show my property  \n5. My Applications\n6. add property\n7. Go back";
+    cout << "Choose an option:\n1. edit property \n2. sell property  \n3. rent my property  \n4. show my property  \n5. My Applications\n6. add property\n7. Go back"<<endl;
     cin >> selection;
 
     switch (selection)
@@ -163,7 +163,7 @@ void navigation::manage_property_menu(int id)
 void navigation::find_property_menu(int id)
 {
    int selection;
-    cout << "Choose an option:\n1. buy property \n2. rent property  \n3. show property\n4. go back";
+    cout << "Choose an option:\n1. buy property \n2. rent property  \n3. show property\n4. go back"<<endl;
     cin >> selection;
 
     switch (selection)
@@ -1584,7 +1584,7 @@ void User::user_login(void)
     cout<<"Enter username"<<endl;
     cin>>id;
     cout<<"Seccesfully Logged in"<<endl;
-    cout<<"Welcome "<<users[id-1].name;
+    cout<<"Welcome "<<users[id-1].name<<endl;
     nav.real_estate_menu(id);  
 }
 
