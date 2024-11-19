@@ -4,6 +4,7 @@
 #include<sstream>
 #include<vector>
 #include<algorithm>
+#include <cstdio>
 using namespace std;
 
 
@@ -92,7 +93,10 @@ void navigation::main_menu(void)
             break;
         }
         case 5:
-            cout << "Exiting program." << endl;
+            cout << "Exiting program." << endl;            
+            // Delete original files
+            std::remove("property.csv");
+            std::remove("pincode.csv");
             exit(0);
             break;
         default:
@@ -1591,6 +1595,27 @@ void User::user_login(void)
 
 int main()
 {
+
+
+    // Copy properties.csv to property.csv
+    std::ifstream src1("main_properties.csv", std::ios::binary);
+    std::ofstream dest1("property.csv", std::ios::binary);
+    dest1 << src1.rdbuf();
+    src1.close();
+    dest1.close();
+
+    // Copy pincodes.csv to pincode.csv
+    std::ifstream src2("main_pincodes.csv", std::ios::binary);
+    std::ofstream dest2("pincode.csv", std::ios::binary);
+    dest2 << src2.rdbuf();
+    src2.close();
+    dest2.close();
+
+
+    // std::cout << "Files copied and originals deleted.\n";
+    // return 0;
+
+
     nav.main_menu();
     return 0;
 }
