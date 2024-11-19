@@ -350,7 +350,75 @@ void property::show_my_prop(vector<int> user_prop_id, int x=1) {
 }
 void property::sell_prop(vector<int> user_prop_id)
 {
-    //code
+    cout << "Enter the property ID of the property you want to put for sale: ";
+    int prop_id;
+    cin >> prop_id;
+
+    // Check if the property ID belongs to the user
+    if (find(user_prop_id.begin(), user_prop_id.end(), prop_id) == user_prop_id.end()) {
+        cout << "You do not own this property or the property ID is invalid." << endl;
+        manage_property_menu();
+        return;
+    }
+
+    bool property_found = false;
+
+    // Open the input file and a temporary output file
+    ifstream inputFile("properties.csv");
+    ofstream tempFile("temp.csv");
+
+    if (!inputFile.is_open() || !tempFile.is_open()) {
+        cerr << "Error opening file!" << endl;
+        return;
+    }
+
+    string line;
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        string row_id, name, owner, pincode, price, area, for_sale, for_rent, type;
+
+        // Parse the CSV row
+        getline(ss, row_id, ',');
+        getline(ss, name, ',');
+        getline(ss, owner, ',');
+        getline(ss, pincode, ',');
+        getline(ss, price, ',');
+        getline(ss, area, ',');
+        getline(ss, for_sale, ',');
+        getline(ss, for_rent, ',');
+        getline(ss, type, ',');
+
+        // Check if the current row matches the property ID
+        if (stoi(row_id) == prop_id) {
+            property_found = true;
+
+            // Update the "for_sale" column to "Y"
+            for_sale = "Y";
+        }
+
+        // Write the row to the temp file (updated or unchanged)
+        tempFile << row_id << "," << name << "," << owner << "," << pincode << ","
+                 << price << "," << area << "," << for_sale << "," << for_rent << "," << type << "\n";
+    }
+
+    inputFile.close();
+    tempFile.close();
+
+    if (!property_found) {
+        cout << "Property ID not found in the file." << endl;
+        remove("temp.csv");
+        return;
+    }
+
+    // Replace the original file with the updated file
+    remove("properties.csv");
+    rename("temp.csv", "properties.csv");
+
+    cout << "Property with ID " << prop_id << " has been successfully marked for sale!" << endl;
+    manage_property_menu();
+    return;
+
+
 }
 void property::rent_my_prop(void)
 {
