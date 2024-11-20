@@ -1015,6 +1015,7 @@ void property::see_and_edit_application(int id) {
     cin >> edit_property_id;
 
     if (edit_property_id == 0) {
+        nav.manage_property_menu(id);
         return;
     }
 
