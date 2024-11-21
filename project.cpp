@@ -1526,7 +1526,9 @@ void User::user_register(void) {
     cin >> name;
     cout << "Enter your age: ";
     cin >> age;
-    user_id=users.size()+1;
+    // user_id=users.size()+1;
+    static int user_id=0;
+    user_id++;
     User temp;
     temp.age=age;
     temp.name=name;
