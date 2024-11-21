@@ -49,7 +49,7 @@ class property:virtual public User
     void rent_a_prop(int);
     void show_prop(int);
     //freind funtion
-    friend void navigation::main_menu(void);
+    // friend void navigation::main_menu(void);
 };
 
 User *pnt = new property;
