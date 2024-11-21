@@ -206,9 +206,7 @@ void pincode_tax::search_landmark(void) {
     cout << "Available Pincodes: " << endl;
     cout << "--------------------" << endl;
 
-    // Skip the header row
-    getline(pincode_file, line);
-    string header_line = line;
+    
 
     // Read each line to extract pincodes
     while (getline(pincode_file, line)) {
@@ -242,8 +240,7 @@ void pincode_tax::search_landmark(void) {
         return;
     }
 
-    getline(pincode_file, header_line); // Skip the header row
-
+   
     bool found = false;
     cout << "\nDetails for Pincode " << selected_pincode << ":" << endl;
     cout << "--------------------------------------------------------" << endl;
@@ -310,8 +307,7 @@ void pincode_tax::tax_calculator(void) {
     bool property_found = false;
     vector<int> available_properties; // Store IDs of properties in the selected pincode
 
-    // Skip the header row
-    getline(property_file, line);
+   
 
     // Display properties in the selected pincode
     while (getline(property_file, line)) {
@@ -388,8 +384,6 @@ void pincode_tax::tax_calculator(void) {
         return;
     }
 
-    // Skip the header row
-    getline(property_file_reopen, line);
 
     while (getline(property_file_reopen, line)) {
         stringstream ss(line);
