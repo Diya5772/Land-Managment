@@ -14,7 +14,7 @@ class User;
 vector<User> users;
 
 
-class User
+ class User
 {
     string name;
     int age, user_id;
@@ -22,10 +22,14 @@ class User
     public:
     void user_register(void);
     void user_login(void);
+    virtual void show_my_prop(int, int)
+    {
+        //base function
+    }
     
 };
 
-class property
+class property:virtual public User
 {
     //data members
     int prop_id, pincode, for_sale, for_rent;
@@ -44,9 +48,13 @@ class property
     void buy_prop(int);
     void rent_a_prop(int);
     void show_prop(int);
+    //freind funtion
+    friend void navigation::main_menu(void);
 };
 
-class pincode_tax
+User *pnt = new property;
+
+class pincode_tax:virtual public User
 {
     public:
     void search_landmark(void);
@@ -54,7 +62,7 @@ class pincode_tax
 };
 
 //navigation functions
-class navigation:User,property,pincode_tax
+class navigation:public property,public pincode_tax
 {
     public:
     void main_menu(void);
@@ -439,7 +447,7 @@ void property::edit_prop(int id)
     cout << "------------------------------------------" << endl;
 
     // Display the user's properties
-    show_my_prop(id, 0);
+    pnt->show_my_prop(id, 0);
 
     cout << "Enter the property ID you want to edit: ";
     cin >> prop_id_tochange;
@@ -551,7 +559,7 @@ void property::edit_prop(int id)
     cout << "Property updated successfully!" << endl;
 
     // Show updated properties
-    show_my_prop(id, 0);
+    pnt->show_my_prop(id, 0);
     nav.manage_property_menu(id);
     return;
 }
@@ -652,7 +660,7 @@ void property::add_prop(int id) {
     }
 
     // Optionally show updated list of properties
-    show_my_prop(id, 0);
+    pnt->show_my_prop(id, 0);
     nav.manage_property_menu(id);
 }
 
@@ -737,7 +745,7 @@ void property::show_my_prop(int id, int x = 1) {
 
 void property::sell_prop(int id) {
     // Display the user's properties
-    show_my_prop(id, 0);
+    pnt->show_my_prop(id, 0);
 
     int property_id;
     double sale_price;
@@ -834,7 +842,7 @@ void property::sell_prop(int id) {
 
 void property::rent_my_prop(int id) {
     // Display the user's properties
-    show_my_prop(id, 0);
+    pnt->show_my_prop(id, 0);
 
     int property_id;
     double rent_price;
