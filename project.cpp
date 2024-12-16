@@ -61,7 +61,7 @@ class pincode_tax:virtual public User
     void tax_calculator(void);
 };
 
-//navigation functions
+//navigation class
 class navigation:public property,public pincode_tax
 {
     public:
@@ -436,6 +436,7 @@ void pincode_tax::tax_calculator(void) {
 
 
 //class property functions
+//Function of manage property
 void property::edit_prop(int id)
 {
     int prop_id_tochange, value;
@@ -1121,7 +1122,7 @@ void property::see_and_edit_application(int id) {
     rename("temp.csv", "property.csv");
     nav.manage_property_menu(id);
 }
-
+//functions of find property
 void property::show_prop(int id) {
     int selected_pincode;
 
